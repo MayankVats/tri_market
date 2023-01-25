@@ -1,22 +1,26 @@
 import { ethers } from "hardhat";
+import { TNFT, TriMarket, TriToken } from "../typechain-types";
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const Token = await ethers.getContractFactory("TriToken");
+  const token: TriToken = (await Token.deploy()) as TriToken;
 
-  const lockedAmount = ethers.utils.parseEther("1");
+  console.log("TriToken deployed at: ", token.address);
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const TNFT = await ethers.getContractFactory("TNFT");
+  const tNFT: TNFT = (await TNFT.deploy()) as TNFT;
 
-  await lock.deployed();
+  console.log("TNFT deployed at: ", tNFT.address);
 
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  const Market = await ethers.getContractFactory("TriMarket");
+  const market: TriMarket = (await Market.deploy(
+    token.address,
+    tNFT.address
+  )) as TriMarket;
+
+  console.log("Market deployed at: ", market.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
